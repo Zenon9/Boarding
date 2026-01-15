@@ -2,7 +2,7 @@
 session_start();
 include "db.php";
 
-// Check if tenant is logged in
+
 if (!isset($_SESSION['tenant_id']) || $_SESSION['user_type'] !== 'tenant') {
     header("Location: login.php");
     exit();
@@ -10,7 +10,7 @@ if (!isset($_SESSION['tenant_id']) || $_SESSION['user_type'] !== 'tenant') {
 
 $tenant_id = $_SESSION['tenant_id'];
 
-// Fetch tenant's personal information
+
 $tenant_query = $conn->prepare("
     SELECT t.*, r.room_number, r.monthly_rent 
     FROM tenants t 
@@ -19,26 +19,26 @@ $tenant_query = $conn->prepare("
 ");
 $tenant_query->bind_param("i", $tenant_id);
 $tenant_query->execute();
-$tenant_result = $tenant_query->get_result(); // Get result object
-$tenant = $tenant_result->fetch_assoc(); // Now use fetch_assoc on result
+$tenant_result = $tenant_query->get_result(); 
+$tenant = $tenant_result->fetch_assoc(); 
 
-// Count tenant's pending maintenance requests
+
 $pending_query = $conn->prepare("SELECT COUNT(*) as count FROM maintenance_requests WHERE tenant_id = ? AND status = 'Pending'");
 $pending_query->bind_param("i", $tenant_id);
 $pending_query->execute();
-$pending_result = $pending_query->get_result(); // Get result object
-$pending_row = $pending_result->fetch_assoc(); // Now use fetch_assoc
+$pending_result = $pending_query->get_result(); 
+$pending_row = $pending_result->fetch_assoc();
 $pending_count = $pending_row['count'];
 
-// Count tenant's paid payments
+
 $paid_query = $conn->prepare("SELECT COUNT(*) as count FROM payments WHERE tenant_id = ? AND (remarks LIKE '%paid%' OR remarks LIKE '%completed%')");
 $paid_query->bind_param("i", $tenant_id);
 $paid_query->execute();
-$paid_result = $paid_query->get_result(); // Get result object
-$paid_row = $paid_result->fetch_assoc(); // Now use fetch_assoc
+$paid_result = $paid_query->get_result(); 
+$paid_row = $paid_result->fetch_assoc(); 
 $paid_count = $paid_row['count'];
 
-// Get tenant's recent payments (for the table)
+
 $recent_payments = $conn->prepare("
     SELECT * FROM payments 
     WHERE tenant_id = ? 
@@ -47,7 +47,7 @@ $recent_payments = $conn->prepare("
 ");
 $recent_payments->bind_param("i", $tenant_id);
 $recent_payments->execute();
-$payments_result = $recent_payments->get_result(); // Get result object
+$payments_result = $recent_payments->get_result(); 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -133,7 +133,7 @@ $payments_result = $recent_payments->get_result(); // Get result object
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
+
     <aside class="sidebar">
       <div class="logo">Boarding House</div>
       <ul class="menu">
@@ -146,9 +146,9 @@ $payments_result = $recent_payments->get_result(); // Get result object
       </ul>
     </aside>
 
-    <!-- Main content -->
+
     <main class="main">
-      <!-- Welcome Message -->
+
       <div class="welcome-message">
         <h2>Welcome, <?php echo htmlspecialchars($_SESSION['tenant_name']); ?>!</h2>
         <div class="tenant-info">
@@ -237,4 +237,5 @@ $payments_result = $recent_payments->get_result(); // Get result object
     </main>
   </div>
 </body>
+
 </html>
