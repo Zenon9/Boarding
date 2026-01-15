@@ -2,7 +2,7 @@
 session_start();
 include "db.php";
 
-// Check if tenant is logged in
+
 if (!isset($_SESSION['tenant_id'])) {
     header("Location: login.php");
     exit();
@@ -11,7 +11,6 @@ if (!isset($_SESSION['tenant_id'])) {
 $tenant_id = $_SESSION['tenant_id'];
 $tenant_name = $_SESSION['tenant_name'];
 
-// Fetch tenant's room information
 $room_query = $conn->prepare("
     SELECT 
         t.tenant_id,
@@ -32,7 +31,6 @@ $room_query->execute();
 $room_result = $room_query->get_result();
 $room_data = $room_result->fetch_assoc();
 
-// Get all rooms for the filter (tenant can see all rooms)
 $all_rooms_query = $conn->query("
     SELECT 
         r.room_id,
@@ -119,14 +117,12 @@ $all_rooms_query = $conn->query("
       </ul>
     </aside>
 
-    <!-- Main content -->
     <main class="main">
       <div class="topbar">
         <h1>Rooms</h1>
         <div class="profile"><?php echo htmlspecialchars($tenant_name); ?></div>
       </div>
 
-      <!-- My Room Card -->
       <?php if ($room_data && isset($room_data['room_number'])): ?>
       <div class="my-room-card">
         <h3>My Room: <?php echo htmlspecialchars($room_data['room_number']); ?></h3>
@@ -156,7 +152,6 @@ $all_rooms_query = $conn->query("
       </div>
       <?php endif; ?>
 
-      <!-- Cards summary -->
       <div class="cards">
         <div class="card">
           <h3>My Room Status</h3>
@@ -173,8 +168,6 @@ $all_rooms_query = $conn->query("
           <p>₱<?php echo number_format($room_data['monthly_rent'] ?? 0, 2); ?></p>
         </div>
       </div>
-
-      <!-- Room filter -->
       <div class="room-filter">
         <label for="feature-select">Filter by Room Type:</label>
         <select id="feature-select">
@@ -184,7 +177,6 @@ $all_rooms_query = $conn->query("
         </select>
       </div>
 
-      <!-- Table of rooms -->
       <div class="table-section">
         <h2>All Rooms in Boarding House</h2>
         <table id="rooms-table">
@@ -228,7 +220,6 @@ $all_rooms_query = $conn->query("
     </main>
   </div>
 
-  <!-- JS to filter rooms -->
   <script>
     const featureSelect = document.getElementById("feature-select");
     const tableRows = document.querySelectorAll("#rooms-table tbody tr");
@@ -246,4 +237,5 @@ $all_rooms_query = $conn->query("
     });
   </script>
 </body>
+
 </html>
