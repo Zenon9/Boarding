@@ -2,7 +2,6 @@
 session_start();
 include "db.php";
 
-// Check if tenant is logged in
 if (!isset($_SESSION['tenant_id'])) {
     header("Location: login.php");
     exit();
@@ -174,3 +173,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
 </body>
 
 </html>
+
