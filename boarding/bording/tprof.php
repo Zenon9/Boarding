@@ -12,22 +12,17 @@ $tenant_id = $_SESSION['tenant_id'];
 $tenant_name = $_SESSION['tenant_name'];
 $message = '';
 $message_type = '';
-
-// Fetch tenant's current information
 $tenant_query = $conn->prepare("SELECT * FROM tenants WHERE tenant_id = ?");
 $tenant_query->bind_param("i", $tenant_id);
 $tenant_query->execute();
 $tenant_result = $tenant_query->get_result();
 $tenant = $tenant_result->fetch_assoc();
-
-// Handle personal information update
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
     $contact_number = trim($_POST['contact_number']);
     $address = trim($_POST['address']);
     
-    // Check if email is being used by another tenant
     $check_email = $conn->prepare("SELECT tenant_id FROM tenants WHERE email = ? AND tenant_id != ?");
     $check_email->bind_param("si", $email, $tenant_id);
     $check_email->execute();
@@ -41,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
         $update_stmt->bind_param("ssssi", $full_name, $email, $contact_number, $address, $tenant_id);
         
         if ($update_stmt->execute()) {
-            // Update session data
             $_SESSION['tenant_name'] = $full_name;
             $tenant['full_name'] = $full_name;
             $tenant['email'] = $email;
@@ -100,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">Boarding House</div>
       <ul class="menu">
@@ -113,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
       </ul>
     </aside>
 
-    <!-- Main content -->
     <main class="main">
       <div class="topbar">
         <h1>My Settings</h1>
@@ -126,7 +118,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
       </div>
       <?php endif; ?>
 
-      <!-- Tenant Info Note -->
       <div class="tenant-info-note">
           <strong>Tenant ID:</strong> <?php echo $tenant_id; ?> 
           | <strong>Room:</strong> 
@@ -140,7 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
           ?>
       </div>
 
-      <!-- Personal Information Form -->
       <div class="table-section">
         <h2>Personal Information</h2>
         <form class="settings-form" method="POST" action="">
@@ -170,7 +160,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
         </form>
       </div>
 
-      <!-- Additional Tenant Information -->
       <div class="table-section" style="margin-top: 30px;">
         <h2>Account Information</h2>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
@@ -183,4 +172,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_info'])) {
     </main>
   </div>
 </body>
+
 </html>
