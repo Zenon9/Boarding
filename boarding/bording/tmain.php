@@ -2,13 +2,13 @@
 session_start();
 include "db.php";
 
-// Check if user is logged in
+
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['tenant_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Determine user type
+
 if (isset($_SESSION['tenant_id'])) {
     $user_type = 'tenant';
     $tenant_id = $_SESSION['tenant_id'];
@@ -18,14 +18,12 @@ if (isset($_SESSION['tenant_id'])) {
 
 $message = '';
 
-// Handle new maintenance request
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_request'])) {
     if ($user_type == 'tenant') {
-        // Tenant submitting request
         $tenant_id = $_SESSION['tenant_id'];
         $issue = trim($_POST['issue']);
         
-        // Get tenant's room_id
         $room_query = $conn->prepare("SELECT room_id FROM tenants WHERE tenant_id = ?");
         $room_query->bind_param("i", $tenant_id);
         $room_query->execute();
@@ -34,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_request'])) {
         if ($room_row = $room_result->fetch_assoc()) {
             $room_id = $room_row['room_id'];
             
-            // Insert maintenance request
             $stmt = $conn->prepare("INSERT INTO maintenance_requests (room_id, tenant_id, issue_description, request_date, status) VALUES (?, ?, ?, CURDATE(), 'Pending')");
             $stmt->bind_param("iis", $room_id, $tenant_id, $issue);
             
@@ -49,9 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_request'])) {
     }
 }
 
-// Fetch maintenance requests based on user type
 if ($user_type == 'tenant') {
-    // Tenant sees only their requests
     $requests_query = $conn->prepare("
         SELECT mr.*, r.room_number, t.full_name 
         FROM maintenance_requests mr
@@ -62,7 +57,6 @@ if ($user_type == 'tenant') {
     ");
     $requests_query->bind_param("i", $tenant_id);
 } else {
-    // Admin sees all requests
     $requests_query = $conn->prepare("
         SELECT mr.*, r.room_number, t.full_name 
         FROM maintenance_requests mr
@@ -84,7 +78,6 @@ $requests_result = $requests_query->get_result();
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">Boarding House</div>
       <ul class="menu">
@@ -106,7 +99,6 @@ $requests_result = $requests_query->get_result();
       </ul>
     </aside>
 
-    <!-- Main content -->
     <main class="main">
       <div class="topbar">
         <h1>Maintenance Requests</h1>
@@ -121,7 +113,6 @@ $requests_result = $requests_query->get_result();
         </div>
       </div>
 
-      <!-- Form to submit new request -->
       <div class="cards">
         <div class="card">
           <h3>Submit a New Request</h3>
@@ -133,13 +124,11 @@ $requests_result = $requests_query->get_result();
           
           <form class="maintenance-form" method="POST" action="">
             <?php if ($user_type == 'tenant'): ?>
-            <!-- Tenant form - shows their info automatically -->
             <input type="hidden" name="submit_request" value="1">
             <label for="tenant">Tenant Name:</label>
             <input type="text" id="tenant" value="<?php echo htmlspecialchars($_SESSION['tenant_name'] ?? ''); ?>" readonly>
             
             <?php 
-            // Get tenant's room number
             $room_query = $conn->prepare("SELECT r.room_number FROM tenants t LEFT JOIN rooms r ON t.room_id = r.room_id WHERE t.tenant_id = ?");
             $room_query->bind_param("i", $tenant_id);
             $room_query->execute();
@@ -154,7 +143,6 @@ $requests_result = $requests_query->get_result();
             
             <button type="submit">Submit Request</button>
             <?php else: ?>
-            <!-- Admin form - can select tenant and room -->
             <p style="color: #666; text-align: center; margin: 10px 0;">
                 Admin: Use the admin maintenance page for full functionality
             </p>
@@ -173,7 +161,6 @@ $requests_result = $requests_query->get_result();
         </div>
       </div>
 
-      <!-- Table showing requests -->
       <div class="table-section">
         <h2>Submitted Requests</h2>
         <table>
@@ -215,4 +202,5 @@ $requests_result = $requests_query->get_result();
     </main>
   </div>
 </body>
+
 </html>
