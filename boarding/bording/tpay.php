@@ -2,7 +2,7 @@
 session_start();
 include "db.php";
 
-// Check if user is logged in
+
 if (!isset($_SESSION['tenant_id'])) {
     header("Location: login.php");
     exit();
@@ -11,7 +11,7 @@ if (!isset($_SESSION['tenant_id'])) {
 $tenant_id = $_SESSION['tenant_id'];
 $tenant_name = $_SESSION['tenant_name'];
 
-// Get tenant's room info
+
 $room_query = $conn->prepare("SELECT r.room_number, r.monthly_rent FROM tenants t LEFT JOIN rooms r ON t.room_id = r.room_id WHERE t.tenant_id = ?");
 $room_query->bind_param("i", $tenant_id);
 $room_query->execute();
@@ -19,30 +19,24 @@ $room_result = $room_query->get_result();
 $room_data = $room_result->fetch_assoc();
 $room_number = $room_data['room_number'] ?? 'N/A';
 $monthly_rent = $room_data['monthly_rent'] ?? 0;
-
-// Calculate payment statistics for this tenant
-// Total payments
 $total_query = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE tenant_id = ?");
 $total_query->bind_param("i", $tenant_id);
 $total_query->execute();
 $total_result = $total_query->get_result();
 $total_payments = $total_result->fetch_assoc()['total'];
 
-// Pending payments
 $pending_query = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as pending FROM payments WHERE tenant_id = ? AND (remarks LIKE '%pending%' OR remarks IS NULL)");
 $pending_query->bind_param("i", $tenant_id);
 $pending_query->execute();
 $pending_result = $pending_query->get_result();
 $pending_payments = $pending_result->fetch_assoc()['pending'];
 
-// Completed payments
 $completed_query = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as completed FROM payments WHERE tenant_id = ? AND (remarks LIKE '%paid%' OR remarks LIKE '%completed%')");
 $completed_query->bind_param("i", $tenant_id);
 $completed_query->execute();
 $completed_result = $completed_query->get_result();
 $completed_payments = $completed_result->fetch_assoc()['completed'];
 
-// Get tenant's payment records
 $payments_query = $conn->prepare("
     SELECT p.*, t.full_name, r.room_number 
     FROM payments p
@@ -95,7 +89,6 @@ $payments_result = $payments_query->get_result();
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">Boarding House</div>
       <ul class="menu">
@@ -107,15 +100,12 @@ $payments_result = $payments_query->get_result();
         <li class="logout"><a href="logout.php">Logout</a></li>
       </ul>
     </aside>
-
-    <!-- Main content -->
     <main class="main">
       <div class="topbar">
         <h1>My Payments</h1>
         <div class="profile"><?php echo htmlspecialchars($tenant_name); ?></div>
       </div>
 
-      <!-- Monthly Rent Card -->
       <div class="monthly-rent-card">
         <h3>Monthly Rent Due</h3>
         <p class="monthly-rent-amount">₱<?php echo number_format($monthly_rent, 2); ?></p>
@@ -123,7 +113,6 @@ $payments_result = $payments_query->get_result();
         <p>Next Payment: <?php echo date('F d, Y', strtotime('+1 month')); ?></p>
       </div>
 
-      <!-- Cards summary -->
       <div class="cards">
         <div class="card">
           <h3>Total Payments</h3>
@@ -139,7 +128,6 @@ $payments_result = $payments_query->get_result();
         </div>
       </div>
 
-      <!-- Table of payments -->
       <div class="table-section">
         <h2>My Payment Records</h2>
         <table>
@@ -188,4 +176,5 @@ $payments_result = $payments_query->get_result();
     </main>
   </div>
 </body>
+
 </html>
